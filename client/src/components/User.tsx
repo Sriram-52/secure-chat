@@ -1,4 +1,4 @@
-import { User } from "../types";
+import { User } from "../models";
 import styles from "./User.module.css";
 
 export default function UserComponent({

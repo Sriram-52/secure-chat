@@ -1,19 +1,58 @@
-import { useState } from "react";
+import * as React from "react";
 import "./App.css";
-import { User } from "./types";
 import SelectUser from "./components/SelectUser";
 import Chat from "./components/Chat";
+import { User } from "./models";
+import { useSocketContext } from "./context/socket";
 
 function App() {
-	const [user, setUser] = useState<User>();
+	const [userNameSelected, setUserNameSelected] = React.useState(false);
 
-	const handleUserSelected = (user: User) => {
-		setUser(user);
+	const { socket } = useSocketContext();
+
+	React.useEffect(() => {
+		const sessionId = localStorage.getItem("sessionId");
+		if (sessionId) {
+			setUserNameSelected(true);
+			socket.auth = { sessionId };
+			socket.connect();
+		}
+
+		socket.on("session", (session) => {
+			socket.auth = { sessionId: session.id };
+
+			localStorage.setItem("sessionId", session.id);
+
+			setUserNameSelected(true);
+		});
+
+		socket.on("connect_error", (err) => {
+			if (err.message === "invalid username") {
+				alert("Username is already taken");
+				setUserNameSelected(false);
+			}
+		});
+
+		return () => {
+			socket.disconnect();
+			socket.off("session");
+			socket.off("connect_error");
+		};
+	}, []);
+
+	const handleUserSelected = (user: Partial<User>) => {
+		setUserNameSelected(true);
+		socket.auth = { username: user.username };
+		socket.connect();
 	};
 
 	return (
 		<div>
-			{user ? <Chat /> : <SelectUser onUserSelected={handleUserSelected} />}
+			{userNameSelected ? (
+				<Chat />
+			) : (
+				<SelectUser onUserSelected={handleUserSelected} />
+			)}
 		</div>
 	);
 }

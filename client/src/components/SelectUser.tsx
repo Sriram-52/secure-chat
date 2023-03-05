@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { User } from "../types";
+import { User } from "../models";
 
 export default function SelectUser({
 	onUserSelected,
 }: {
-	onUserSelected: (user: User) => void;
+	onUserSelected: (user: Partial<User>) => void;
 }) {
-	const [user, setUser] = useState<User>({
-		email: "",
+	const [user, setUser] = useState<Partial<User>>({
 		username: "",
 	});
 
@@ -24,14 +23,6 @@ export default function SelectUser({
 		<div className="select-username">
 			<form onSubmit={handleSubmit}>
 				<input
-					type="email"
-					value={user.email}
-					name="email"
-					onChange={handleChange}
-					placeholder="Email"
-				/>
-
-				<input
 					placeholder="Username"
 					type="text"
 					name="username"
@@ -39,7 +30,7 @@ export default function SelectUser({
 					onChange={handleChange}
 				/>
 
-				<button disabled={!user.email || !user.username} type="submit">
+				<button disabled={!user.username} type="submit">
 					Submit
 				</button>
 			</form>

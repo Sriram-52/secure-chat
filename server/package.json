@@ -11,7 +11,7 @@
     "lint": "eslint --ext .ts src",
     "generate": "rimraf src/generated && openapi-generator-plus -c config.yml",
     "build": "rimraf build && tsc",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon src/server.ts",
     "start": "node build/index.js",
     "debug": "nodemon --inspect src/index.ts",
     "prettier": "prettier --write \"src/**/*.ts\", \"src/**/*.js\""
