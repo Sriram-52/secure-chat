@@ -11,7 +11,7 @@ import {
 	Thread,
 	Window,
 } from "stream-chat-react";
-
+import { environment } from "./environment";
 import { useClient } from "./hooks/useClient";
 import { E2eeManger } from "./utils/e2ee";
 
@@ -39,7 +39,7 @@ const MessageComponent = ({ message }: { message: string | undefined }) => {
 
 const App = ({ userId }: { userId: string }) => {
 	const chatClient = useClient({
-		apiKey: "rvpcyqs2cnb3",
+		apiKey: environment.apiKey,
 		userData: {
 			id: userId,
 			publicKey: E2eeManger.instance.getPublicKey(),
