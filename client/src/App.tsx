@@ -1,60 +1,87 @@
-import * as React from "react";
-import "./App.css";
-import SelectUser from "./components/SelectUser";
-import Chat from "./components/Chat";
-import { User } from "./models";
-import { useSocketContext } from "./context/socket";
+import { useEffect, useState } from "react";
+import { ChannelSort, Message } from "stream-chat";
+import {
+	Chat,
+	Channel,
+	ChannelHeader,
+	ChannelList,
+	LoadingIndicator,
+	MessageInput,
+	MessageList,
+	Thread,
+	Window,
+} from "stream-chat-react";
 
-function App() {
-	const [userNameSelected, setUserNameSelected] = React.useState(false);
+import { useClient } from "./hooks/useClient";
+import { E2eeManger } from "./utils/e2ee";
 
-	const { socket } = useSocketContext();
+const filters = { type: "messaging", members: { $in: ["Henry"] } };
+const sort: ChannelSort = { last_message_at: -1 };
 
-	React.useEffect(() => {
-		const sessionId = localStorage.getItem("sessionId");
-		if (sessionId) {
-			setUserNameSelected(true);
-			socket.auth = { sessionId };
-			socket.connect();
-		}
+const App = () => {
+	const [loading, setLoading] = useState(true);
 
-		socket.on("session", (session) => {
-			socket.auth = { sessionId: session.id };
-
-			localStorage.setItem("sessionId", session.id);
-
-			setUserNameSelected(true);
-		});
-
-		socket.on("connect_error", (err) => {
-			if (err.message === "invalid username") {
-				alert("Username is already taken");
-				setUserNameSelected(false);
-			}
-		});
-
-		return () => {
-			socket.disconnect();
-			socket.off("session");
-			socket.off("connect_error");
-		};
+	useEffect(() => {
+		(async () => {
+			await E2eeManger.instance.generateKeyPair();
+			console.log("Key pair generated");
+			setLoading(false);
+		})();
 	}, []);
 
-	const handleUserSelected = (user: Partial<User>) => {
-		setUserNameSelected(true);
-		socket.auth = { username: user.username };
-		socket.connect();
-	};
+	const chatClient = useClient({
+		apiKey: "rvpcyqs2cnb3",
+		userData: {
+			id: "Henry",
+		},
+	});
+
+	if (!chatClient || loading) {
+		return <LoadingIndicator />;
+	}
 
 	return (
-		<div>
-			{userNameSelected ? (
-				<Chat />
-			) : (
-				<SelectUser onUserSelected={handleUserSelected} />
-			)}
-		</div>
+		<Chat client={chatClient} theme="str-chat__theme-light">
+			<ChannelList filters={filters} sort={sort} />
+			<Channel>
+				<Window>
+					<ChannelHeader />
+					<MessageList />
+					<MessageInput
+						overrideSubmitHandler={async (message, channelCid, messageData) => {
+							message.text = "Hello, world!";
+							const messageToSend: Message = {
+								...messageData,
+								text: message.text,
+							};
+							const channels = await chatClient.queryChannels({
+								cid: {
+									$eq: channelCid,
+								},
+							});
+							if (channels.length === 0) {
+								console.error("Channel not found");
+								return;
+							}
+							const channel = channels[0];
+
+							const { members } = await channel.queryMembers({});
+
+							const otherUser = members.filter(
+								(member) => member.user_id !== chatClient.userID
+							);
+
+							console.log({ otherUser });
+
+							await channel.sendMessage(messageToSend);
+							console.log("Message sent");
+						}}
+					/>
+				</Window>
+				<Thread />
+			</Channel>
+		</Chat>
 	);
-}
+};
 
 export default App;
