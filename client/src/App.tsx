@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChannelSort, Message } from "stream-chat";
+import { ChannelSort, Message as MessageType } from "stream-chat";
 import {
 	Chat,
 	Channel,
@@ -15,30 +15,43 @@ import {
 import { useClient } from "./hooks/useClient";
 import { E2eeManger } from "./utils/e2ee";
 
-const filters = { type: "messaging", members: { $in: ["Henry"] } };
-const sort: ChannelSort = { last_message_at: -1 };
-
-const App = () => {
-	const [loading, setLoading] = useState(true);
+const MessageComponent = ({ message }: { message: string | undefined }) => {
+	const [decryptedMessage, setDecryptedMessage] = useState<string | undefined>(
+		undefined
+	);
 
 	useEffect(() => {
-		(async () => {
-			await E2eeManger.instance.generateKeyPair();
-			console.log("Key pair generated");
-			setLoading(false);
-		})();
-	}, []);
+		const decryptMessage = async () => {
+			const decryptedMessage = await E2eeManger.instance.decryptMessage(
+				message ?? ""
+			);
+			setDecryptedMessage(decryptedMessage);
+		};
+		decryptMessage();
+	}, [message]);
 
+	if (decryptedMessage) {
+		return <div>{decryptedMessage}</div>;
+	}
+
+	return <div>{message}</div>;
+};
+
+const App = ({ userId }: { userId: string }) => {
 	const chatClient = useClient({
 		apiKey: "rvpcyqs2cnb3",
 		userData: {
-			id: "Henry",
+			id: userId,
+			publicKey: E2eeManger.instance.getPublicKey(),
 		},
 	});
 
-	if (!chatClient || loading) {
+	if (!chatClient) {
 		return <LoadingIndicator />;
 	}
+
+	const filters = { type: "messaging", members: { $in: [userId] } };
+	const sort: ChannelSort = { last_message_at: -1 };
 
 	return (
 		<Chat client={chatClient} theme="str-chat__theme-light">
@@ -46,14 +59,11 @@ const App = () => {
 			<Channel>
 				<Window>
 					<ChannelHeader />
-					<MessageList />
+					<MessageList
+						renderText={(props) => <MessageComponent message={props} />}
+					/>
 					<MessageInput
 						overrideSubmitHandler={async (message, channelCid, messageData) => {
-							message.text = "Hello, world!";
-							const messageToSend: Message = {
-								...messageData,
-								text: message.text,
-							};
 							const channels = await chatClient.queryChannels({
 								cid: {
 									$eq: channelCid,
@@ -67,11 +77,36 @@ const App = () => {
 
 							const { members } = await channel.queryMembers({});
 
-							const otherUser = members.filter(
+							const otherUser = members.find(
 								(member) => member.user_id !== chatClient.userID
 							);
 
 							console.log({ otherUser });
+
+							if (!otherUser) {
+								console.error("Other user not found");
+								return;
+							}
+
+							const otherUserPublicKey = otherUser.user?.publicKey as string;
+
+							if (!otherUserPublicKey) {
+								console.error("Other user public key not found");
+								return;
+							}
+
+							const parsedPublicKey = await E2eeManger.instance.importPublicKey(
+								otherUserPublicKey
+							);
+
+							message.text = await E2eeManger.instance.encryptMessage(
+								message.text ?? "",
+								parsedPublicKey
+							);
+							const messageToSend: MessageType = {
+								...messageData,
+								text: message.text,
+							};
 
 							await channel.sendMessage(messageToSend);
 							console.log("Message sent");

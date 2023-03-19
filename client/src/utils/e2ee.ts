@@ -1,4 +1,6 @@
 export class E2eeManger {
+	private TAG = "E2eeManger";
+
 	private static _instance: E2eeManger;
 	static isInitialized = false;
 
@@ -32,9 +34,9 @@ export class E2eeManger {
 		localStorage.setItem("keyPair", JSON.stringify(keyPair));
 	}
 
-	async getPublicKey() {
+	getPublicKey() {
 		if (!localStorage.getItem("keyPair")) {
-			await this.generateKeyPair();
+			throw new Error("No crypto pair");
 		}
 		const parsedKeyPair = JSON.parse(localStorage.getItem("keyPair")!);
 		return parsedKeyPair.publicKey;
@@ -96,8 +98,24 @@ export class E2eeManger {
 		await this.saveKeyPair();
 	}
 
+	async importPublicKey(publicKey: string) {
+		const importedKey = await window.crypto.subtle.importKey(
+			"spki",
+			Buffer.from(publicKey, "base64"),
+			{
+				name: "RSA-OAEP",
+				hash: "SHA-256",
+			},
+			true,
+			["encrypt"]
+		);
+		return importedKey;
+	}
+
 	async encryptMessage(message: string, publicKey: CryptoKey) {
+		console.log("encrypting message", message, this.TAG);
 		const encoded = new TextEncoder().encode(message);
+		console.log("encoded", encoded, this.TAG);
 		const encrypted = await window.crypto.subtle.encrypt(
 			{
 				name: "RSA-OAEP",
@@ -105,15 +123,20 @@ export class E2eeManger {
 			publicKey,
 			encoded
 		);
+		console.log("encrypted", encrypted, this.TAG);
 		return Buffer.from(encrypted).toString("base64");
 	}
 
 	async decryptMessage(message: string) {
+		console.log("decrypting message", message, this.TAG);
 		if (!this.cryptoPair) {
 			throw new Error("No crypto pair");
 		}
 
 		const decoded = Buffer.from(message, "base64");
+
+		console.log("decoded", decoded, this.TAG);
+
 		const decrypted = await window.crypto.subtle.decrypt(
 			{
 				name: "RSA-OAEP",
@@ -121,6 +144,9 @@ export class E2eeManger {
 			this.cryptoPair.privateKey,
 			decoded
 		);
+
+		console.log("decrypted", decrypted, this.TAG);
+
 		return new TextDecoder().decode(decrypted);
 	}
 }
