@@ -53,6 +53,6 @@ In this way we can achieve end to end encryption.
 ## Outputs
 
 1. Alice sends a message to bob
-   ![Alice sends a message to bob](client/ouputs/alice.png)
+   ![Alice sends a message to bob](client/outputs/alice.png)
 2. Bob receives the message
-   ![Bob receives the message](client/ouputs/bob.png)
+   ![Bob receives the message](client/outputs/bob.png)
