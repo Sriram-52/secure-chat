@@ -34,6 +34,10 @@ export class E2eeManger {
 		localStorage.setItem("keyPair", JSON.stringify(keyPair));
 	}
 
+	deleteKeyPair() {
+		localStorage.removeItem("keyPair");
+	}
+
 	getPublicKey() {
 		if (!localStorage.getItem("keyPair")) {
 			throw new Error("No crypto pair");
@@ -113,9 +117,9 @@ export class E2eeManger {
 	}
 
 	async encryptMessage(message: string, publicKey: CryptoKey) {
-		console.log("encrypting message", message, this.TAG);
+		// console.log("encrypting message", message, this.TAG);
 		const encoded = new TextEncoder().encode(message);
-		console.log("encoded", encoded, this.TAG);
+		// console.log("encoded", encoded, this.TAG);
 		const encrypted = await window.crypto.subtle.encrypt(
 			{
 				name: "RSA-OAEP",
@@ -123,19 +127,19 @@ export class E2eeManger {
 			publicKey,
 			encoded
 		);
-		console.log("encrypted", encrypted, this.TAG);
+		// console.log("encrypted", encrypted, this.TAG);
 		return Buffer.from(encrypted).toString("base64");
 	}
 
 	async decryptMessage(message: string) {
-		console.log("decrypting message", message, this.TAG);
+		// console.log("decrypting message", message, this.TAG);
 		if (!this.cryptoPair) {
 			throw new Error("No crypto pair");
 		}
 
 		const decoded = Buffer.from(message, "base64");
 
-		console.log("decoded", decoded, this.TAG);
+		// console.log("decoded", decoded, this.TAG);
 
 		const decrypted = await window.crypto.subtle.decrypt(
 			{
@@ -145,7 +149,7 @@ export class E2eeManger {
 			decoded
 		);
 
-		console.log("decrypted", decrypted, this.TAG);
+		// console.log("decrypted", decrypted, this.TAG);
 
 		return new TextDecoder().decode(decrypted);
 	}
