@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate": "orval --config ./orval.config.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
@@ -14,10 +15,13 @@
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.12.1",
     "@mui/styled-engine-sc": "^5.12.0",
+    "axios": "^1.3.5",
     "buffer": "^6.0.3",
+    "firebase": "^9.20.0",
     "lottie-web": "^5.11.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-query": "^3.39.3",
     "react-router-dom": "^6.9.0",
     "socket.io-client": "^4.6.1",
     "stream-chat": "^8.4.1",
@@ -28,6 +32,8 @@
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "@vitejs/plugin-react": "^3.1.0",
+    "orval": "^6.14.3",
+    "prettier": "^2.8.7",
     "typescript": "^4.9.3",
     "vite": "^4.1.0"
   }

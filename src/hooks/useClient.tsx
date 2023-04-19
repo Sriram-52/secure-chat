@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { LogLevel, StreamChat, User } from "stream-chat";
+import { userControllerGetToken } from "../api/services/base/users";
 
 export const useClient = ({
 	apiKey,
@@ -21,14 +22,16 @@ export const useClient = ({
 		// prevents application from setting stale client (user changed, for example)
 		let didUserConnectInterrupt = false;
 
-		const connectionPromise = client
-			.connectUser(userData, client.devToken(userData.id))
-			.then(() => {
-				if (!didUserConnectInterrupt) setChatClient(client);
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+		let connectionPromise: Promise<any> = Promise.resolve();
+
+		(async () => {
+			const token = await userControllerGetToken(userData.id);
+			connectionPromise = client.connectUser(userData, token);
+			await connectionPromise;
+			if (!didUserConnectInterrupt) {
+				setChatClient(client);
+			}
+		})();
 
 		return () => {
 			didUserConnectInterrupt = true;
