@@ -13,12 +13,18 @@ type AuthContextType = {
 	user: User | null;
 	login: (email: string, password: string) => Promise<void>;
 	logout: () => Promise<void>;
-	tokenListener: () => void;
+	tokenListener: (cb: () => void) => void;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+	const context = useContext(AuthContext);
+	if (!context) {
+		throw new Error("AuthContext not found");
+	}
+	return context;
+};
 
 function AuthContextProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
@@ -43,7 +49,7 @@ function AuthContextProvider({ children }: { children: React.ReactNode }) {
 		setUser(null);
 	};
 
-	const tokenListener = () => {
+	const tokenListener = (cb: () => void) => {
 		auth.onIdTokenChanged((user) => {
 			if (user) {
 				setUser({
@@ -54,6 +60,7 @@ function AuthContextProvider({ children }: { children: React.ReactNode }) {
 			} else {
 				setUser(null);
 			}
+			cb();
 		});
 	};
 

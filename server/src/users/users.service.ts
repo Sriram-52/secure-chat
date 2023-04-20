@@ -13,6 +13,21 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(private _streamChatService: StreamChatService) {}
 
+  async findAll(): Promise<User[]> {
+    const listUsersResult = await admin.auth().listUsers();
+    const users = listUsersResult.users.map((userRecord): User => {
+      return {
+        id: userRecord.uid,
+        email: userRecord.email,
+        name: userRecord.displayName,
+        publicKey: null,
+        createdAt: new Date(userRecord.metadata.creationTime).toISOString(),
+        updatedAt: null,
+      };
+    });
+    return users;
+  }
+
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password, name, publicKey } = createUserDto;
     const userRecord = await admin.auth().createUser({

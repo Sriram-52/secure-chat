@@ -2,16 +2,20 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { unProtectedRoutes, protectedRoutes } from "./routes";
 import { useAuth } from "./context/AuthContext";
 import NotFoundPage from "./pages/NotFoundPage";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Navbar from "./layout/Navbar";
 
 export default function App() {
-	const authContext = useAuth();
-
-	const user = authContext?.user;
+	const { user, tokenListener } = useAuth();
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		authContext?.tokenListener();
+		tokenListener(() => setLoading(false));
 	}, []);
+
+	if (loading) {
+		return <div>Loading...</div>;
+	}
 
 	if (!user) {
 		return (
@@ -25,12 +29,14 @@ export default function App() {
 	}
 
 	return (
-		<Routes>
-			<Route path="*" element={<NotFoundPage />} />
-			{protectedRoutes.map(({ path, Component }) => (
-				<Route key={path} path={path} element={<Component />} />
-			))}
-			<Route path="/login" element={<Navigate to="/" replace />} />
-		</Routes>
+		<Navbar>
+			<Routes>
+				<Route path="*" element={<NotFoundPage />} />
+				{protectedRoutes.map(({ path, Component }) => (
+					<Route key={path} path={path} element={<Component />} />
+				))}
+				<Route path="/login" element={<Navigate to="/" replace />} />
+			</Routes>
+		</Navbar>
 	);
 }

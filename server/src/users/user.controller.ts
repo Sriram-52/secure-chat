@@ -16,6 +16,16 @@ export class UserController {
   constructor(private _service: UsersService) {}
 
   @ApiResponse({
+    status: 200,
+    description: 'Users retrieved successfully.',
+    type: [User],
+  })
+  @Get('/getAll')
+  getAll(): Promise<User[]> {
+    return this._service.findAll();
+  }
+
+  @ApiResponse({
     status: 201,
     description: 'The record has been successfully created.',
     type: User,

@@ -6,9 +6,6 @@ body,
 body {
 	margin: 0;
 }
-#root {
-	display: flex;
-}
 
 .str-chat__channel-list {
 	width: 30%;

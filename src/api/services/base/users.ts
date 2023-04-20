@@ -23,6 +23,63 @@ import type {
 import { baseInstance } from "../../instances/baseInstance";
 import type { ErrorType } from "../../instances/baseInstance";
 
+export const userControllerGetAll = (signal?: AbortSignal) => {
+  return baseInstance<User[]>({ url: `/users/getAll`, method: "get", signal });
+};
+
+export const getUserControllerGetAllQueryKey = () => [`/users/getAll`] as const;
+
+export const getUserControllerGetAllQueryOptions = <
+  TData = Awaited<ReturnType<typeof userControllerGetAll>>,
+  TError = ErrorType<unknown>
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof userControllerGetAll>>,
+    TError,
+    TData
+  >;
+}): UseQueryOptions<
+  Awaited<ReturnType<typeof userControllerGetAll>>,
+  TError,
+  TData
+> & { queryKey: QueryKey } => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getUserControllerGetAllQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof userControllerGetAll>>
+  > = ({ signal }) => userControllerGetAll(signal);
+
+  return { queryKey, queryFn, ...queryOptions };
+};
+
+export type UserControllerGetAllQueryResult = NonNullable<
+  Awaited<ReturnType<typeof userControllerGetAll>>
+>;
+export type UserControllerGetAllQueryError = ErrorType<unknown>;
+
+export const useUserControllerGetAll = <
+  TData = Awaited<ReturnType<typeof userControllerGetAll>>,
+  TError = ErrorType<unknown>
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof userControllerGetAll>>,
+    TError,
+    TData
+  >;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getUserControllerGetAllQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+};
+
 export const userControllerCreate = (createUserDto: CreateUserDto) => {
   return baseInstance<User>({
     url: `/users/create`,

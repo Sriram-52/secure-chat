@@ -11,21 +11,15 @@ import {
 	MessageToSend,
 } from "stream-chat-react";
 import { E2eeManger } from "../utils/e2ee";
-import { useClient } from "../hooks/useClient";
-import { environment } from "../environment";
 import CustomMessageList from "./CustomMessageList";
+import { useChatContext } from "../context/ChatContext";
+import { Box } from "@mui/material";
 
 export default function MessagePanel({ userId }: { userId: string }) {
-	const chatClient = useClient({
-		apiKey: environment.apiKey,
-		userData: {
-			id: userId,
-			publicKey: E2eeManger.instance.getPublicKey(),
-		},
-	});
+	const { chatClient } = useChatContext();
 
 	if (!chatClient) {
-		return <LoadingIndicator />;
+		return <LoadingIndicator size={20} />;
 	}
 
 	const filters = { type: "messaging", members: { $in: [userId] } };
@@ -98,15 +92,26 @@ export default function MessagePanel({ userId }: { userId: string }) {
 
 	return (
 		<Chat client={chatClient} theme="str-chat__theme-light">
-			<ChannelList filters={filters} sort={sort} />
-			<Channel>
-				<Window>
-					<ChannelHeader />
-					<CustomMessageList />
-					<MessageInput overrideSubmitHandler={handleSubmit} />
-				</Window>
-				<Thread />
-			</Channel>
+			<Box
+				sx={{
+					display: "flex",
+					height: {
+						xs: `calc(100vh - 48px)`,
+						sm: `calc(100vh - 64px)`,
+						md: `calc(100vh - 80px)`,
+					},
+				}}
+			>
+				<ChannelList filters={filters} sort={sort} />
+				<Channel>
+					<Window>
+						<ChannelHeader />
+						<CustomMessageList />
+						<MessageInput overrideSubmitHandler={handleSubmit} />
+					</Window>
+					<Thread />
+				</Channel>
+			</Box>
 		</Chat>
 	);
 }
