@@ -39,8 +39,8 @@ In this way we can achieve end to end encryption.
 
 ## Challenges Faced
 
-1. Exporting the public key in json.
-2. Let’s say Alice send a message to bob. In our system we are encrypting the message with bob’s public key. So if Alice want’s to decrypt his own message, he cannot do that
+1. ~~Exporting the public key in json.~~ (Solved)
+2. ~~Let’s say Alice send a message to bob. In our system we are encrypting the message with bob’s public key. So if Alice want’s to decrypt his own message, he cannot do that~~ (Solved)
 
 ## Functions
 
@@ -50,9 +50,13 @@ In this way we can achieve end to end encryption.
 4. exportPublicKey - Exports the public key in base64 format to the server
 5. saveKeys - Saves the keys in the secure storage
 
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md)
+
 ## Outputs
 
 1. Alice sends a message to bob
-   ![Alice sends a message to bob](outputs/alice.png)
+   ![Alice sends a message to bob](outputs/alice.v2.png)
 2. Bob receives the message
-   ![Bob receives the message](outputs/bob.png)
+   ![Bob receives the message](outputs/bob.v2.png)
