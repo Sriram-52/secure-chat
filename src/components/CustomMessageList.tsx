@@ -21,32 +21,12 @@ export default function CustomMessageList() {
 			}
 
 			const decryptedMessages = await Promise.all(
-				messages?.map(async (message) => {
-					try {
-						let cipherText = message.text;
-						if (authContext?.user?.id === message.user?.id) {
-							const extraFields = (message.extraFields ?? {}) as {
-								senderEncryptedText?: string;
-							};
-
-							cipherText = extraFields?.senderEncryptedText ?? "No message";
-						}
-
-						const decryptedMessage = await E2eeManger.instance.decryptMessage(
-							cipherText ?? ""
-						);
-
-						return {
-							...message,
-							text: decryptedMessage,
-						};
-					} catch (error) {
-						return {
-							...message,
-							text: "Error decrypting message" + error,
-						};
-					}
-				}) ?? []
+				messages?.map(async (message) =>
+					E2eeManger.instance.decryptStreamMessage(
+						message,
+						authContext.user!.id
+					)
+				) ?? []
 			);
 			setDecryptedMessages(decryptedMessages);
 		})();

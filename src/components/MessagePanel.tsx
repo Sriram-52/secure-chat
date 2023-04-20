@@ -14,6 +14,8 @@ import { E2eeManger } from "../utils/e2ee";
 import CustomMessageList from "./CustomMessageList";
 import { useChatContext } from "../context/ChatContext";
 import { Box } from "@mui/material";
+import NewChat from "./NewChat";
+import CustomChannelPreview from "./CustomChannelPreview";
 
 export default function MessagePanel({ userId }: { userId: string }) {
 	const { chatClient } = useChatContext();
@@ -102,7 +104,12 @@ export default function MessagePanel({ userId }: { userId: string }) {
 					},
 				}}
 			>
-				<ChannelList filters={filters} sort={sort} />
+				<ChannelList
+					filters={filters}
+					sort={sort}
+					showChannelSearch
+					Preview={CustomChannelPreview}
+				/>
 				<Channel>
 					<Window>
 						<ChannelHeader />
@@ -111,6 +118,16 @@ export default function MessagePanel({ userId }: { userId: string }) {
 					</Window>
 					<Thread />
 				</Channel>
+			</Box>
+			<Box
+				sx={{
+					position: "absolute",
+					bottom: 0,
+					left: "18%",
+					p: 2,
+				}}
+			>
+				<NewChat />
 			</Box>
 		</Chat>
 	);

@@ -1,3 +1,5 @@
+import { StreamMessage } from "stream-chat-react";
+
 export class E2eeManger {
 	private TAG = "E2eeManger";
 
@@ -152,5 +154,35 @@ export class E2eeManger {
 		// console.log("decrypted", decrypted, this.TAG);
 
 		return new TextDecoder().decode(decrypted);
+	}
+
+	async decryptStreamMessage(
+		message: StreamMessage,
+		loggedInUserId: string
+	): Promise<StreamMessage> {
+		try {
+			let cipherText = message.text;
+			if (loggedInUserId === message.user?.id) {
+				const extraFields = (message.extraFields ?? {}) as {
+					senderEncryptedText?: string;
+				};
+
+				cipherText = extraFields?.senderEncryptedText ?? "No message";
+			}
+
+			const decryptedMessage = await E2eeManger.instance.decryptMessage(
+				cipherText ?? ""
+			);
+
+			return {
+				...message,
+				text: decryptedMessage,
+			};
+		} catch (error) {
+			return {
+				...message,
+				text: "Error decrypting message" + error,
+			};
+		}
 	}
 }

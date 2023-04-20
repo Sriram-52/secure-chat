@@ -5,7 +5,7 @@ https://docs.nestjs.com/providers#services
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
-import { User } from 'src/users/entities/user.entity';
+import * as admin from 'firebase-admin';
 import { StreamChat } from 'stream-chat';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class StreamChatService {
   client: StreamChat;
 
   constructor(private _configService: ConfigService) {
-    this.client = new StreamChat(
+    this.client = StreamChat.getInstance(
       _configService.get<string>('STREAM_API_KEY'),
       _configService.get<string>('STREAM_API_SECRET'),
     );
@@ -49,7 +49,8 @@ export class StreamChatService {
   }
 
   async createChannel(userId: string, members: string[]) {
-    const channel = this.client.channel('messaging', userId, {
+    const ref = admin.firestore().collection('channels').doc();
+    const channel = this.client.channel('messaging', ref.id, {
       members: [...members, userId],
       created_by: { id: userId },
     });
