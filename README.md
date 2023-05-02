@@ -2,6 +2,81 @@
 
 A React application using RSA encryption that provides a user-friendly interface and strong security features to protect users' data. The app should allow users to send and receive messages in real time while ensuring that all communications are kept confidential.
 
+## Getting Started
+
+### Prerequisites
+1. Node.js
+2. Yarn
+
+### Installation
+1. You can install Node.js from [here](https://nodejs.org/en/download/).
+2. You can install Yarn from [here](https://classic.yarnpkg.com/en/docs/install).
+
+3. Clone the repository
+
+```bash
+git clone https://github.com/Sriram-52/secure-chat.git
+```
+
+4. Add the .env file as shown in the .env.example file in both the root directory and server directory
+
+```bash
+touch .env
+```
+
+```bash
+cd server && touch .env
+```
+
+4. Install the dependencies in the root directory and server directory
+
+```bash
+yarn install
+```
+
+```bash
+cd server && yarn install
+```
+
+5. Run the client and server
+
+```bash
+yarn dev
+```
+
+```bash
+cd server && yarn start:dev
+```
+
+6. Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
+
+## Tech Stack
+1. React
+2. Node.js
+3. Nest.js
+4. Firebase
+
+## Build
+1. Build the client and server
+
+```bash
+yarn build
+```
+
+```bash
+cd server && yarn build
+```
+
+2. You can find the build files in the dist folder in both the root directory and server directory
+
+```bash
+cd dist
+```
+
+```bash
+cd server && cd dist
+```
+
 ## Table of Contents
 
 - [Login Functionality](#login-functionality)
