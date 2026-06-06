@@ -7,6 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { authClient } from "@/lib/auth-client";
 import { useKeys } from "@/lib/use-keys";
 import { Conversation } from "@/components/conversation";
+import { CipherMark } from "@/components/cipher-mark";
 
 type Selection = {
   userId: string;
@@ -47,7 +48,8 @@ export function ChatApp() {
       {/* ── Sidebar ──────────────────────────────────────────────── */}
       <aside className="surface flex min-h-0 flex-col border-r">
         <header className="flex items-center justify-between border-b px-5 py-4">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <CipherMark className="h-6 w-6 text-[var(--accent)]" />
             <span className="font-[family-name:var(--font-display)] text-2xl leading-none">
               Cipher
             </span>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { CipherMark } from "@/components/cipher-mark";
 
 function GithubIcon() {
   return (
@@ -86,7 +87,7 @@ export function AuthScreen() {
         {/* Brand */}
         <div className="mb-9 text-center">
           <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border-bright)] bg-[var(--surface-2)] shadow-[0_0_40px_-12px_var(--accent)]">
-            <LockGlyph />
+            <CipherMark className="h-6 w-6 text-[var(--accent)]" />
           </div>
           <h1 className="font-[family-name:var(--font-display)] text-5xl leading-none tracking-tight">
             Cipher
@@ -194,28 +195,5 @@ export function AuthScreen() {
         </p>
       </div>
     </div>
-  );
-}
-
-function LockGlyph() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M6 10V7a6 6 0 1 1 12 0v3"
-        stroke="var(--accent)"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <rect
-        x="4"
-        y="10"
-        width="16"
-        height="11"
-        rx="3"
-        stroke="var(--accent)"
-        strokeWidth="1.6"
-      />
-      <circle cx="12" cy="15" r="1.6" fill="var(--accent)" />
-    </svg>
   );
 }
