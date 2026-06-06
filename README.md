@@ -1,137 +1,75 @@
-# Secure Chat
+# Cipher — end-to-end encrypted chat
 
-A React application using RSA encryption that provides a user-friendly interface and strong security features to protect users' data. The app should allow users to send and receive messages in real time while ensuring that all communications are kept confidential.
+A 1:1 messaging app where **the server only ever sees ciphertext**. Keys are
+generated in the browser, messages are encrypted before they leave, and the
+backend stores nothing it can read.
 
-## Getting Started
+**Stack:** Next.js (App Router, React 19) · Convex (reactive realtime DB) ·
+Better Auth (email/password + Google + GitHub) · Web Crypto API · deployed on
+Vercel + Convex Cloud.
 
-### Prerequisites
-1. Node.js
-2. Yarn
+> A ground-up rewrite of an earlier version (React/Vite + NestJS + Stream Chat +
+> Firebase). The rebuild collapses four services into two managed ones and makes
+> the encryption — not the plumbing — the center of the app.
 
-### Installation
-1. You can install Node.js from [here](https://nodejs.org/en/download/).
-2. You can install Yarn from [here](https://classic.yarnpkg.com/en/docs/install).
+## How the encryption works
 
-3. Clone the repository
+The interesting part isn't "it uses RSA." It's the **hybrid scheme**, which is
+what real end-to-end encryption actually does, and why.
 
-```bash
-git clone https://github.com/Sriram-52/secure-chat.git
-```
+**Why not just RSA?** RSA-OAEP can only encrypt ~190 bytes — it physically can't
+encrypt a real message. So RSA protects only a small symmetric key, and a
+symmetric cipher does the bulk work:
 
-4. Add the .env file as shown in the .env.example file in both the root directory and server directory
+1. Each browser generates an **RSA-OAEP-2048** keypair on first sign-in. The
+   private key is created **non-extractable** and stored as a `CryptoKey` in
+   **IndexedDB** — never serialized, never sent. Only the **public** key (SPKI)
+   is uploaded.
+2. To send, the browser generates a fresh random **AES-GCM-256** key, encrypts
+   the body with it, then **wraps (RSA-encrypts) that AES key once per
+   participant** with their public key.
+3. The server stores only: ciphertext, IV, and the two wrapped keys.
+4. To read, a participant unwraps *their* copy of the AES key with their private
+   key, then decrypts the body.
 
-```bash
-touch .env
-```
+Because the AES key is wrapped for **both** participants (including the sender),
+either side can read the history — which solves the classic "the sender can't
+decrypt their own sent messages" problem without storing the plaintext twice.
 
-```bash
-cd server && touch .env
-```
+**See it yourself:** every message bubble has a *show ciphertext* toggle that
+reveals exactly what's stored server-side. The Convex dashboard shows the same —
+rows of base64 gibberish.
 
-4. Install the dependencies in the root directory and server directory
+### Honest limitations
 
-```bash
-yarn install
-```
+This is a portfolio demo, not Signal:
 
-```bash
-cd server && yarn install
-```
+- **Keys are per-browser.** A new device gets a new keypair and can't read old
+  history. Real apps solve this with encrypted key backup / cross-device sync.
+- **No forward secrecy or sender authentication.** Production would add ephemeral
+  keys (e.g. the Signal double-ratchet) and message signing.
+- **Public-key delivery is trusted.** Clients trust the server to serve the right
+  public key; a full threat model needs key verification (safety numbers).
 
-5. Run the client and server
+## Architecture
 
-```bash
-yarn dev
-```
+- `convex/` — schema + functions. `messages`/`conversations` store ciphertext
+  only; `profiles` holds each user's public key + display info. Auth tables are
+  owned by the Better Auth Convex component. Realtime is automatic (Convex
+  queries are reactive — no WebSocket code).
+- `src/lib/crypto.ts` — the entire crypto layer (keygen, IndexedDB persistence,
+  hybrid encrypt/decrypt) on the Web Crypto API, zero dependencies.
+- `src/components/` — sign-in, user directory, conversation.
 
-```bash
-cd server && yarn start:dev
-```
-
-6. Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
-
-## Tech Stack
-1. React
-2. Node.js
-3. Nest.js
-4. Firebase
-
-## Build
-1. Build the client and server
-
-```bash
-yarn build
-```
-
-```bash
-cd server && yarn build
-```
-
-2. You can find the build files in the dist folder in both the root directory and server directory
+## Run it locally
 
 ```bash
-cd dist
+pnpm install
+npx convex dev      # provisions a dev deployment + generates types, leave running
+pnpm dev            # http://localhost:3000
 ```
 
-```bash
-cd server && cd dist
-```
-
-## Table of Contents
-
-- [Login Functionality](#login-functionality)
-- [Sending a Message](#sending-a-message)
-- [Challenges Faced](#challenges-faced)
-- [Functions](#functions)
-- [Outputs](#outputs)
-- [Contributors](#contributors)
-
-## Login Functionality
-
-1. User logins to our application.
-2. Then a RSA Asymmetric key pair will be generated.
-3. The key pairs are securely stored in the user device in the secure storage.
-4. Then user exports his public key to our server.
-
-## Sending a Message
-
-1. Let’s take two users Alice and Bob.
-2. Alice tries to send message to bob
-   1. Alice scenario:
-      1. Alice gets the public key of bob from our server.
-      2. Alice encrypts the message with bob’s public key.
-      3. Encrypted message will be stored in our server.
-   2. Bob scenario:
-      1. Fetch the encrypted messages from our server.
-      2. Decrypts each message using his own private key.
-      3. The step 2 is repeated for all the messages.
-3. The above process is vice versa if bob tries to send message to Alice.
-
-So, we can see that the message is only present between the two parties who are communicating.
-No one knows other than them.
-
-In this way we can achieve end to end encryption.
-
-## Challenges Faced
-
-1. ~~Exporting the public key in json.~~ (Solved)
-2. ~~Let’s say Alice send a message to bob. In our system we are encrypting the message with bob’s public key. So if Alice want’s to decrypt his own message, he cannot do that~~ (Solved)
-
-## Functions
-
-1. generateKeys - Generates a RSA Asymmetric key pair
-2. encryptMessage - Encrypts the message with the public key
-3. decryptMessage - Decrypts the message with the private key
-4. exportPublicKey - Exports the public key in base64 format to the server
-5. saveKeys - Saves the keys in the secure storage
-
-## Contributors
-
-See [CONTRIBUTORS.md](CONTRIBUTORS.md)
-
-## Outputs
-
-1. Alice sends a message to bob
-   ![Alice sends a message to bob](outputs/alice.v2.png)
-2. Bob receives the message
-   ![Bob receives the message](outputs/bob.v2.png)
+In the Convex deployment, set `BETTER_AUTH_SECRET` and `SITE_URL`
+(`http://localhost:3000`). Google/GitHub sign-in also need their OAuth client
+id/secret set in Convex. The frontend reads `NEXT_PUBLIC_CONVEX_URL` /
+`NEXT_PUBLIC_CONVEX_SITE_URL` from `.env.local` (written by `convex dev`).
